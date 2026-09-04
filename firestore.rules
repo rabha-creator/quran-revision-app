@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      allow create: if isOwner(userId);
+      allow read: if isOwner(userId) || resource.data.publicProfile == true;
+      allow update: if isOwner(userId) && request.resource.data.totalPoints >= 0;
+      allow delete: if false;
+
+      match /reviewLogs/{logId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /memorizationLogs/{logId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /friendships/{friendId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /leaderboards/{boardId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /quizAttempts/{attemptId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /quranEditions/{editionId}/ayahs/{ayahId} {
+      allow read: if signedIn() && editionId == 'qalun-tunisia';
+      allow write: if false;
+    }
+
+    match /friendships/{friendshipId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || resource.data.friendId == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if signedIn() && (resource.data.userId == request.auth.uid || resource.data.friendId == request.auth.uid);
+    }
+
+    match /friendRequests/{requestId} {
+      allow read: if signedIn() && (resource.data.requesterId == request.auth.uid || resource.data.recipientId == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.requesterId == request.auth.uid;
+      allow update: if signedIn() && resource.data.recipientId == request.auth.uid;
+      allow delete: if signedIn() && resource.data.requesterId == request.auth.uid;
+    }
+  }
+}

@@ -1,0 +1,25 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Dependencies and builds
+node_modules/
+frontend/node_modules/
+functions/node_modules/
+frontend/dist/
+functions/lib/
+
+# Local Firebase and tooling
+.firebase/
+.vercel/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+backend/.venv/
+backend/*.db
